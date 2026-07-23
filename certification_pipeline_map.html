@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GFL 認定パイプライン マップ｜2026/7/16現在</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --ink:#211f1b; --sub:#4a453c; --line:#e2ddd2;
+    --card:#ffffff; --card2:#fbf9f4;
+    --accent:#7a6f9b;      /* 落ち着いた藤色（GFL=セラピー文脈の穏やかな色） */
+    --accent-soft:#efe9f6;
+    --grad:#8aa08f;        /* 修了生 */
+    --train:#c99a5b;       /* 実習生 */
+    --cert:#7a6f9b;        /* 認定サポート生 */
+    --base:#5f8aa3;        /* 共通基盤 */
+    --ok:#3f8f6b; --ok-bg:#e7f3ec;
+    --wip:#c77b3c; --wip-bg:#fbeede;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;
+    line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 90px}
+  header.top{margin-bottom:18px}
+  h1{font-size:22px;margin:0 0 4px;letter-spacing:.02em}
+  .meta{color:var(--sub);font-size:14px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 6px;font-size:13.5px;align-items:center}
+  .lg{display:inline-flex;align-items:center;gap:6px;color:var(--sub)}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .tag{font-size:12px;padding:2px 9px;border-radius:20px;font-weight:700;white-space:nowrap}
+  .tag.ok{background:var(--ok-bg);color:var(--ok)}
+  .tag.wip{background:var(--wip-bg);color:var(--wip)}
+  .tag.lv{background:var(--accent-soft);color:var(--accent);border:1px solid #ddd2ec}
+  .tag.star{background:#fff4d6;color:#a6791f}
+  .tag.type{background:#eef2f0;color:#527a67}
+
+  /* ---- 全体像マップ ---- */
+  .mapcard{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:20px 20px 8px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .maptitle{font-size:14px;color:var(--sub);font-weight:800;letter-spacing:.06em;margin-bottom:14px}
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .stage{flex:1;min-width:150px;border-radius:14px;padding:14px 14px 12px;cursor:pointer;
+    border:2px solid transparent;transition:.15s;position:relative}
+  .stage:hover{transform:translateY(-2px)}
+  .stage .st-h{font-weight:800;font-size:16px;margin-bottom:2px}
+  .stage .st-s{font-size:12.5px;color:var(--sub);min-height:30px}
+  .stage.grad{background:#eef3ef;border-color:#d6e3da}
+  .stage.grad .st-h{color:var(--grad)}
+  .stage.train{background:#f8efe1;border-color:#eeddc2}
+  .stage.train .st-h{color:var(--train)}
+  .stage.cert{background:#f0ecf6;border-color:#ded2ee}
+  .stage.cert .st-h{color:var(--cert)}
+  .arrow{align-self:center;color:#c3bcae;font-size:22px;font-weight:700;padding:0 2px}
+  .click-hint{font-size:12px;color:#7d7669;margin-top:6px;font-weight:700}
+
+  .badges{margin-top:14px;background:var(--card2);border:1px dashed #ded2ee;border-radius:14px;padding:14px}
+  .badges .bh{font-size:13px;color:var(--cert);font-weight:800;margin-bottom:10px;letter-spacing:.03em}
+  .badgerow{display:flex;gap:10px;flex-wrap:wrap}
+  .badge{flex:1;min-width:210px;background:#fff;border:1.5px solid #e4dcf0;border-radius:12px;
+    padding:11px 12px;cursor:pointer;transition:.15s}
+  .badge:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .badge .bd-h{font-weight:800;font-size:14.5px;margin-bottom:2px;color:var(--cert)}
+  .badge .bd-s{font-size:12px;color:var(--sub);margin-bottom:8px;min-height:28px}
+  .levels{display:flex;gap:5px}
+  .lvpill{flex:1;text-align:center;font-size:12px;font-weight:700;padding:4px 0;border-radius:7px;
+    background:var(--accent-soft);color:var(--accent)}
+  .fly{margin-top:11px;font-size:12.5px;color:var(--wip);background:var(--wip-bg);
+    border-radius:9px;padding:7px 11px;display:inline-block}
+
+  .basebar{margin-top:14px;border-radius:13px;padding:13px 15px;cursor:pointer;
+    background:#e9f0f4;border:2px solid #cfe0e8;transition:.15s}
+  .basebar:hover{transform:translateY(-2px)}
+  .basebar .bb-h{font-weight:800;color:var(--base);font-size:14.5px}
+  .basebar .bb-s{font-size:12.5px;color:var(--sub)}
+
+  .typebar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .typebox{flex:1;min-width:170px;background:var(--card2);border:1px solid var(--line);
+    border-radius:11px;padding:10px 12px}
+  .typebox b{font-size:13.5px}
+  .typebox p{margin:3px 0 0;font-size:12px;color:var(--sub)}
+
+  /* ---- ナビ ---- */
+  .nav{display:flex;gap:8px;margin:22px 0 12px;flex-wrap:wrap}
+  .navbtn{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 15px;
+    font-size:14px;font-weight:700;cursor:pointer;color:var(--sub);transition:.12s}
+  .navbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .navbtn.exam{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* ---- 詳細パネル ---- */
+  #detail{margin-top:6px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;
+    animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .panel h2{font-size:20px;margin:0 0 3px}
+  .panel .lead{color:var(--sub);font-size:14px;margin:0 0 16px}
+  .want{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;
+    padding:11px 15px;font-size:14px;margin:0 0 18px}
+  .want b{color:var(--accent)}
+  .block{margin:0 0 18px}
+  .block > .bh2{font-size:15.5px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .crit{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:9px;background:var(--card2)}
+  .crit .ct{font-weight:800;font-size:14.5px;margin-bottom:3px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .crit .cmeta{font-size:13px;color:var(--sub)}
+  .crit .cmeta .k{color:#7a7264;font-weight:700;margin-right:4px}
+  .crit .note{font-size:13px;color:var(--wip);margin-top:5px}
+  .lvtable{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 10px}
+  .lvtable th,.lvtable td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .lvtable th{background:var(--accent-soft);color:var(--accent);width:70px;font-size:12px}
+  .lvtable td.src{color:var(--sub);font-size:12.5px;width:34%}
+  .checkl{list-style:none;padding:0;margin:6px 0 0}
+  .checkl li{font-size:13.5px;padding:7px 0 7px 26px;position:relative;border-bottom:1px dashed #ece7db}
+  .checkl li:before{content:"☐";position:absolute;left:4px;top:5px;color:#b7af9f}
+  .checkl li .lvmark{font-weight:700;color:var(--accent);margin-right:5px}
+  .checkl li .st{color:#a6791f;margin-right:3px}
+  .hint-open{font-size:13px;color:var(--sub);background:#f0ede6;border-radius:9px;padding:9px 13px;margin-top:6px}
+
+  /* ---- 試験マトリクス ---- */
+  .mtx{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  .mtx th,.mtx td{border:1px solid var(--line);padding:8px 9px;vertical-align:top;text-align:left}
+  .mtx thead th{background:var(--accent);color:#fff;font-size:12.5px;position:sticky;top:0}
+  .mtx tbody th{background:var(--accent-soft);color:var(--accent);font-size:12.5px;width:120px}
+  .mtx td.fill{background:#fffdf7;color:#948b79;font-style:italic}
+  .mtx .memo{color:var(--sub);font-size:12px}
+  .rowh{background:#efece5 !important;font-weight:800;color:var(--ink) !important}
+  .decidebox{background:#fff8ec;border:1px solid #f0dcae;border-radius:12px;padding:14px 16px;margin:4px 0 16px;font-size:14px}
+  .decidebox b{color:var(--wip)}
+  .decidebox ol{margin:8px 0 0;padding-left:20px}
+  .decidebox li{margin-bottom:4px}
+
+  footer{margin-top:26px;color:#8a8375;font-size:12.5px;text-align:center}
+  .intro{font-size:14px;color:var(--sub)}
+  .intro b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>GFL 認定パイプライン マップ</h1>
+    <div class="meta">認定サポート生制度 ｜ 2026年7月16日 二子さんMTG時点 ｜ Nori 設計ドラフト（＝二子さんとの確認・議論用の作業台）</div>
+    <div class="legend">
+      <span class="lg"><span class="dot" style="background:var(--grad)"></span>修了生</span>
+      <span class="lg"><span class="dot" style="background:var(--train)"></span>実習生</span>
+      <span class="lg"><span class="dot" style="background:var(--cert)"></span>認定サポート生</span>
+      <span class="lg"><span class="dot" style="background:var(--base)"></span>共通基盤</span>
+      <span class="lg" style="margin-left:8px"><span class="tag ok">確定</span>固まった</span>
+      <span class="lg"><span class="tag wip">未確定</span>今日/今後の議論</span>
+    </div>
+  </header>
+
+  <!-- ===== 全体像マップ L0 ===== -->
+  <div class="mapcard">
+    <div class="maptitle">L0 ｜ 全体像マップ（クリックで各層が下に開きます）</div>
+
+    <div class="flow">
+      <div class="stage grad" onclick="show('grad')">
+        <div class="st-h">修了生</div>
+        <div class="st-s">半年講座を修了。チャイルディアンが「出たことを自覚し、相談できる」段階。</div>
+        <div class="click-hint">▸ 基準を見る</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage train" onclick="show('train')">
+        <div class="st-h">実習生</div>
+        <div class="st-s">HW動画100%＋GFL体験を「書ける・話せる」。※2on1のサブには入らない。</div>
+        <div class="click-hint">▸ 基準を見る</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage cert" onclick="show('cert')">
+        <div class="st-h">認定サポート生</div>
+        <div class="st-s">問題チャイルディアンをクリア＋ワーク理解＋プロ意識。3バッジ制。</div>
+        <div class="click-hint">▸ 基準を見る</div>
+      </div>
+    </div>
+
+    <div class="badges">
+      <div class="bh">認定サポート生の中身 ─ 3バッジ × レベル（各バッジのL1をクリアで「L1認定サポート生」を名乗れる）</div>
+      <div class="badgerow">
+        <div class="badge" onclick="show('b_koza')">
+          <div class="bd-h">① 講座サポート</div>
+          <div class="bd-s">二子さんがいる場で、安心安全・その場に集中・疑問質問の解消。</div>
+          <div class="levels"><span class="lvpill">L1</span><span class="lvpill">L2</span><span class="lvpill">L3</span></div>
+        </div>
+        <div class="badge" onclick="show('b_hw')">
+          <div class="bd-h">② ホームワーク会 主催</div>
+          <div class="bd-s">二子さんがいなくても、学び多き場を1人で回せる。</div>
+          <div class="levels"><span class="lvpill">L1</span><span class="lvpill">L2</span><span class="lvpill">L3</span></div>
+        </div>
+        <div class="badge" onclick="show('b_2on1')">
+          <div class="bd-h">③ 2on1セッション</div>
+          <div class="bd-s">メイン担当。GFL的見立てで介入。＝中級講座／古参は特別扱い。</div>
+          <div class="levels"><span class="lvpill">L1 サブ</span><span class="lvpill">L2 メイン</span><span class="lvpill">L3 上級</span></div>
+        </div>
+      </div>
+      <div class="fly">↑ <b>"飛び球"ルート</b>：L1から順ではなく、ロープレでL2・L3にチェックが入れば、いきなりそのレベルの認定も可能（7/16合意）。</div>
+    </div>
+
+    <div class="basebar" onclick="show('base')">
+      <div class="bb-h">◇ 全段階を貫く「共通基盤」（クリックで開く）</div>
+      <div class="bb-s">取り組み続けている ／ 語れること ／ パッション ＋ 自分のチャイルディアンを癒した経験（書ける・話せる）</div>
+    </div>
+
+    <div class="typebar">
+      <div class="typebox"><b>🧠 知識型</b><p>講座全体の流れと意図の理解、HWの説明 → <b>筆記テスト</b>で測る</p></div>
+      <div class="typebox"><b>🛠 技術型</b><p>各バッジのスキル、チャイルディアンの扱い → <b>チェックリスト／ロープレ</b></p></div>
+      <div class="typebox"><b>🔥 姿勢型</b><p>パッション、取り組み継続、プロ意識 → <b>観察／面談</b>（7/16の要フォーカス）</p></div>
+    </div>
+  </div>
+
+  <!-- ===== ナビ ===== -->
+  <div class="nav">
+    <button class="navbtn" onclick="show('intro')">この地図の読み方</button>
+    <button class="navbtn" onclick="show('base')">共通基盤</button>
+    <button class="navbtn" onclick="show('grad')">修了生</button>
+    <button class="navbtn" onclick="show('train')">実習生</button>
+    <button class="navbtn" onclick="show('cert')">認定サポート生</button>
+    <button class="navbtn exam" onclick="show('exam')">★ L3 試験設計マトリクス（今日の議論）</button>
+  </div>
+
+  <div id="detail"></div>
+
+  <footer>出典：2026/7/16 二子さんMTG文字起こし・認定基準測定チェックリスト・講座サポート/ホームワーク会/2on1詳細たたき台。青字の「未確定」は今後の議論で更新されます。</footer>
+</div>
+
+<script>
+/* ========== データ ========== */
+const T = {
+  ok:'<span class="tag ok">確定</span>',
+  wip:'<span class="tag wip">未確定</span>',
+  type:(t)=>`<span class="tag type">${t}</span>`
+};
+
+const DATA = {
+  intro:{html:`
+    <div class="panel">
+      <h2>この地図の読み方</h2>
+      <p class="lead">認定パイプラインを「4つの層」に分けています。上の全体像マップの各要素をクリックすると、その層が開きます。</p>
+      <div class="intro">
+        <p><b>L0 全体像マップ（上部・常時表示）</b><br>縦の流れ＝<b>修了生 → 実習生 → 認定サポート生</b>。認定サポート生の中だけに「3バッジ × L1〜L3」があります。全段階を下から支える「共通基盤」と、測定の3タイプ（知識／技術／姿勢）も同じ画面に。</p>
+        <p><b>L1 段階別の基準（各段階カードをクリック）</b><br>「その段階に上がるための"大項目"」だけを表示。チェックリストの細かい粒度には降りません。</p>
+        <p><b>L2 チェックリスト（各バッジをクリック）</b><br>既存たたき台のレベル早見表と、レベル別チェック項目。⭐＝上位レベルで求められる項目。</p>
+        <p><b>L3 試験設計マトリクス（右上の★ボタン）</b><br><b>今日の議論の"器"</b>。各基準を「どの方式で・誰が・どのラインで合格とするか」を、その場で埋めていきます。空欄は意図的に残しています。</p>
+      </div>
+    </div>`},
+
+  /* ---------- 共通基盤 ---------- */
+  base:{html:`
+    <div class="panel">
+      <h2>◇ 共通基盤（全段階を貫く）</h2>
+      <p class="lead">段階のどこにも属さず、修了生・実習生・認定サポート生すべてに通用する土台。7/16でほぼ確定。</p>
+
+      <div class="block">
+        <div class="bh2">共-1 取り組み続けている ${T.ok} ${T.type('姿勢型')}</div>
+        <div class="crit">
+          <div class="ct"><span>十分条件：GFLの次の講座を受講している</span>${T.ok}</div>
+          <div class="cmeta"><span class="k">意味</span>再受講、中級、言語化講座などを続けていれば「取り組み続けている」と見なす。これがあれば即OK。</div>
+        </div>
+        <div class="crit">
+          <div class="ct"><span>定量：継続の記録</span>${T.ok}</div>
+          <div class="cmeta"><span class="k">方法</span>① 修了後もオンラインサロンに属している（再受講者含む）／② SNSで取り組みを発信している／HW提出の継続（Discord記録）<br><span class="k">判定</span>事務方 ＋ 提出</div>
+        </div>
+        <div class="crit">
+          <div class="ct"><span>定性（イレギュラー）：コミュニティ内の日常的な関わり</span>${T.wip}</div>
+          <div class="cmeta"><span class="k">背景</span>GFLはコミュニティで取り組むことを大事にする。サロンに属すだけでなく、イベント参加や仲間との関わりが「見える」か。<br><span class="k">判定</span>二子さん or 認定サポート生</div>
+          <div class="note">未確定：何をもって「見える」とするか。基本は問題化したときのみ扱う（＝グレーゾーン運用）。出席率は測定から除外。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">共-2 語れること ${T.ok} ${T.type('姿勢型')}</div>
+        <div class="crit">
+          <div class="ct"><span>定性：自分の体験から説得力を持って語れるか（ビフォーアフター・何が起こったか）</span>${T.ok}</div>
+          <div class="cmeta"><span class="k">方法</span>グループ面談 ＋ レポート<br><span class="k">判定</span>二子さん（将来的に、要素を抽出できれば千恵さん等でも判定可能に）</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">共-3 パッション ${T.ok} ${T.type('姿勢型')}</div>
+        <div class="crit">
+          <div class="ct"><span>定性：「GFLが多くの人に届くことを健全に願い、届いていない場合は健全に嘆く」が伝わってくるか</span>${T.ok}</div>
+          <div class="cmeta"><span class="k">見え方の例</span>個別の会話・MTGでの反応／外部の人への紹介・告知／内側からの情熱で語る／「もっと広まったら嬉しい」という夢を語る<br><span class="k">判定</span>二子さん（＝二子さんに伝わってくるか、が基準にならざるを得ない）</div>
+          <div class="note">運用方針：手順として突きつけるのではなく、"クレド／例示"の形で「こういう想いを持っていてほしい」と示す。基準としては残す。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">共通認識：チャイルディアン ${T.ok}</div>
+        <div class="crit">
+          <div class="ct"><span>自分のチャイルディアンに取り組んで癒している（書ける・話せる）</span>${T.ok}</div>
+          <div class="cmeta"><span class="k">7/16追加</span>ワークを通して、自分のチャイルディアンやGFLのやり方への理解がある。実習生の「GFL体現」と同じ構造（ビフォーアフターで書ける・話せる）。<br><span class="k">論点</span>「問題になるチャイルディアンのクリア」とは一部重なるが完全一致ではない（＝飛び球問題）。認定サポート生の項目で扱う。</div>
+        </div>
+      </div>
+    </div>`},
+
+  /* ---------- 修了生 ---------- */
+  grad:{html:`
+    <div class="panel">
+      <h2><span style="color:var(--grad)">●</span> 修了生</h2>
+      <p class="lead">半年講座を修了した段階。パイプラインの入口。</p>
+      <div class="block">
+        <div class="bh2">段階別チャイルディアンの整理</div>
+        <div class="crit">
+          <div class="ct"><span>求められること：（特になし ─ まぁまぁあっても仕方ない）</span>${T.ok}</div>
+          <div class="cmeta">この段階では、問題になるチャイルディアンが多少あっても構わない。</div>
+        </div>
+      </div>
+      <div class="hint-open">→ 次のステップ「実習生になるには」を見るには、上のマップで<b>実習生</b>をクリック。</div>
+    </div>`},
+
+  /* ---------- 実習生 ---------- */
+  train:{html:`
+    <div class="panel">
+      <h2><span style="color:var(--train)">●</span> 実習生になるには</h2>
+      <p class="lead">旧「候補生の基準」＋以下。＋<b>共通基盤</b>も満たすこと。</p>
+      <div class="want"><b>7/16の重要決定：</b>実習生は <b>2on1セッションのサブには入らない</b>（サブは認定サポート生L1が担当。形として整理）。</div>
+
+      <div class="block">
+        <div class="bh2">段階別チャイルディアン ${T.ok}</div>
+        <div class="crit">
+          <div class="ct"><span>出たことを自覚できて、相談できる</span>${T.ok}</div>
+          <div class="cmeta">取り組んでいれば段階にはいられる（クリア必須ではない）。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">実-1 チャイルディアンの自覚と相談 ${T.wip} ${T.type('姿勢型')}</div>
+        <div class="crit" style="border-color:#f0dcae;background:#fff8ec">
+          <div class="ct"><span>📌 スタッフに相談予定</span>${T.wip}</div>
+          <div class="cmeta">「相談できている」の具体的な判定基準を、スタッフにヒアリングして決める。</div>
+        </div>
+        <div class="crit">
+          <div class="ct"><span>出たことを自覚し、相談できているか</span>${T.wip}</div>
+          <div class="cmeta"><span class="k">○の例</span>「私に何が起こっているんだと思いますか？」と聞ける<br><span class="k">×（アウト）</span>人のせいにしている発言を止められない<br><span class="k">場面</span>講座・ブレイクアウト・2on1等での行動観察／本人の自己申告・相談の有無<br><span class="k">判定</span>認定サポート生（上の層）</div>
+          <div class="note">未確定：「相談できている」の具体的判定。案＝自己申告（5段階＋理由記述）／穴埋め式。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">実-3 HW・動画の完了 ${T.ok} ${T.type('知識/技術')}</div>
+        <div class="crit">
+          <div class="ct"><span>提出率 100%（後から提出も可）</span>${T.ok}</div>
+          <div class="cmeta"><span class="k">方法</span>Discordの投稿記録を集計／<span class="k">判定</span>事務方</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">集約・持ち越しになった項目</div>
+        <div class="crit">
+          <div class="ct"><span>実-2 自己成長の貪欲さ → 共通基盤「取り組み続けている」に集約</span>${T.ok}</div>
+        </div>
+        <div class="crit">
+          <div class="ct"><span>※実習生"中に"育むこと：取り組む実践者として見えている（問題時の対応・相談）</span>${T.ok}</div>
+          <div class="cmeta">上がる前に必須ではない。実習の中で学ぶ。認定サポート生のチェック項目側にある。</div>
+        </div>
+      </div>
+    </div>`},
+
+  /* ---------- 認定サポート生 ---------- */
+  cert:{html:`
+    <div class="panel">
+      <h2><span style="color:var(--cert)">●</span> 認定サポート生になるには</h2>
+      <p class="lead">候補生 ＋ 実習生の基準 ＋ 以下。＋<b>共通基盤</b>、＋<b>3バッジのいずれかL1以上</b>。</p>
+      <div class="want"><b>入口は2軸（7/16整理）：</b>① 問題になるチャイルディアンをクリア【観察】　② チャイルディアンワークについて理解している【試験】。<br>この2つは一部重なるが完全一致でない ＝ <b>"飛び球"</b>（問題化するものが無いまま上がれてしまう人には、②を試験で確認）。</div>
+
+      <div class="block">
+        <div class="bh2">認-1 問題チャイルディアンをクリア ${T.wip} ${T.type('姿勢/観察')}</div>
+        <div class="crit">
+          <div class="ct"><span>定性：実習期間中の行動観察の蓄積（単発テストではない）</span>${T.wip}</div>
+          <div class="cmeta"><span class="k">判定</span>千恵ちゃん等 ＋ 二子さん</div>
+          <div class="note">未確定：「クリア」の具体的なライン。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">認-2 プロ意識 ${T.wip} ${T.type('姿勢型')}</div>
+        <div class="crit">
+          <div class="ct"><span>独自判断で動かず、確認してから動けるか</span>${T.wip}</div>
+          <div class="cmeta"><span class="k">中身</span>① 二子さん（＝顧客）が求めていることを積極的に知ろうとし、② その実現のために考えて動ける<br><span class="k">×の例</span>「二子さんが私のためにこうすべき」／自分で仕事を作ってフィー交渉（本人の安心にはなるがGFL・二子さんのサポートにならない）＝受講生意識<br><span class="k">場面</span>実習中の行動観察／<span class="k">判定</span>二子さん・管理職（千恵ちゃん）</div>
+          <div class="note">概念は合意済み。未確定：具体的チェック項目／レベル分けの要否。実習生期間中に"育成"（短い動画で繰り返し伝える案）。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">認-3 理解の深さ ${T.wip} ${T.type('知識型')}</div>
+        <div class="crit">
+          <div class="ct"><span>テスト（テキストベース／自分で取り組む）</span>${T.wip}</div>
+          <div class="cmeta">範囲を明示すれば客観的に判定可能。<span class="k">未確定</span>範囲と形式。</div>
+        </div>
+        <div class="crit">
+          <div class="ct"><span>ロールプレイ（受講生の質問にそれずに説明できるか）</span>${T.wip}</div>
+          <div class="cmeta">判定：認定サポート生 or 二子さん。<span class="k">未確定</span>ロープレの具体設計。<span class="k">利点</span>飛び球判定に有効。</div>
+        </div>
+        <div class="crit">
+          <div class="ct"><span>レポート提出</span>${T.wip}</div>
+          <div class="cmeta">過去事例あり（O期 認定講師養成）。判定：二子さん。<span class="k">未確定</span>評価基準。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">認-4／4b 中級講座・2on1メイン ${T.ok}</div>
+        <div class="crit">
+          <div class="ct"><span>中級講座修了 等（2on1メイン担当の場合は必須）</span>${T.ok}</div>
+          <div class="cmeta">受講記録 or セラピスト資格・実績／事務方。2on1メインはレギュラーラインでは認定サポート生のみ可。</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">認-5 実習活動 期間／回数 ${T.wip}</div>
+        <div class="crit">
+          <div class="ct"><span>定量：実習活動期間 / 回数</span>${T.wip}</div>
+          <div class="cmeta">活動記録／事務方。<span class="k">未確定</span>何クール以上か（バッジごとにシンプルに）。</div>
+        </div>
+      </div>
+
+      <div class="hint-open">→ 各バッジの詳細チェックリストは、上のマップで <b>①講座サポート ／ ②ホームワーク会 ／ ③2on1</b> をクリック。</div>
+    </div>`},
+
+  /* ---------- ① 講座サポート ---------- */
+  b_koza:{html:`
+    <div class="panel">
+      <h2 style="color:var(--cert)">① 講座サポート</h2>
+      <p class="lead">L2 チェックリスト（既存たたき台）。土台＝二子さん作成の中級講座リフレクティングチェックシート。</p>
+      <div class="want">求めること：<b>二子さんがいる場で</b>「安心安全」「その場に集中（一緒にいられる）」「疑問質問を解消する動きができる」</div>
+
+      <div class="block">
+        <div class="bh2">① 場の軌道修正</div>
+        <table class="lvtable">
+          <tr><th>L1</th><td>チャイルディアンが出ていることに気づける。話を区切り「今どんな感じですか」と体の感覚に戻せる。今ここに居られ、神経が落ち着いた状態で会話に参加できる。</td><td class="src">×：防衛反応の世界に入ってしまう／場の意図に沿えない</td></tr>
+          <tr><th>L2</th><td>「今こういう作戦が出てますよね」とGFLの視点に戻せる。自分でマイクを持って一度整理できる。安全感を保ちながら場の主導権を握れる。成熟した大人の意識から場を仕切れる。</td><td class="src">×：聞き役はできるが仕切れない／仕切れるが十分に聞けない</td></tr>
+          <tr><th>L3</th><td>かなり防衛反応（受講生の地雷を踏んだ）を起こしている人がいる時に対応できる。難しい場面で裏表なく自分の声を明かせる。</td><td class="src">該当者：ちえ・はる・まい・ひろみ</td></tr>
+        </table>
+        <ul class="checkl">
+          <li><span class="lvmark">L1</span>自分のことを把握しながら、その場にいられる（違和感や防衛に気づいていられる）</li>
+          <li><span class="lvmark">L1</span>わからないことをわからないと自覚できる。自覚した上でその場で取り上げられる</li>
+          <li><span class="lvmark">L1</span>リフレクティング終了時、「痛みと願いに発見があったか」に注意を戻せる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>表面的な痛みではなく、全体の核心にある痛みを見つけにいける</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>相談者の回避行動を見立てられる（要：レベル分化の確認）</li>
+          <li><span class="st">⭐</span><span class="lvmark">L3</span>防衛的な怒り・悲しみではなく、痛みの核心に想像力を働かせられる</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">② 一緒にいる（GFLスキル）</div>
+        <table class="lvtable">
+          <tr><th>L1</th><td>「一緒にいる」をしっかり理解している</td><td class="src"></td></tr>
+          <tr><th>L2</th><td>基本的に大体は相手と一緒にいられている。受講生ができていない時に注意を促せる</td><td class="src">今スタッフはほぼ分かる（やっとさん以外）</td></tr>
+          <tr><th>L3</th><td>自分が防衛的な感情を向けられている時も、その人と一緒にいられる</td><td class="src">同上</td></tr>
+        </table>
+        <ul class="checkl"><li>相談者と「一緒にいる」ことを続けようとできている</li></ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">③ チャイルディアンの扱い（自分側）</div>
+        <table class="lvtable">
+          <tr><th>L1</th><td>自分のチャイルディアンが出てきていることに気づける</td><td class="src">相手に巻き込まれず見るための自己認識</td></tr>
+          <tr><th>L2</th><td>受講生のチャイルディアンに巻き込まれず、一歩引いて見られる</td><td class="src"></td></tr>
+          <tr><th>補足</th><td>自分で扱えなくなった時（稀）、その場の人に助けを求められる（タイムができる）</td><td class="src">チェックシートに直接ない項目・要確認</td></tr>
+        </table>
+        <ul class="checkl">
+          <li>自分のことを把握しながらその場にいられる（①と共通の土台）</li>
+          <li>「自分だったらこう感じる」を客観的に扱える（自他の反応を混同しない）</li>
+          <li>自分の話で場を占拠してしまわないでいられる</li>
+          <li>反応している自分を相談者に安全に明かせる</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">④ 疑問質問への対応 ${T.ok} <span style="font-size:11px;color:var(--sub);font-weight:400">（7/14新設）</span></div>
+        <ul class="checkl">
+          <li>受講生から質問された時、分からない・曖昧なことは自分で判断せず「二子さんに確認しましょうね」と質問を促せる</li>
+        </ul>
+      </div>
+      <div class="hint-open">💡 7/16の方針：<b>講座サポートL1はかなり緩い基準でよい</b>。他2つに比べて簡単な仕事なので、スキルそのものよりプロ意識など共通項目ができていればOK。</div>
+    </div>`},
+
+  /* ---------- ② ホームワーク会 ---------- */
+  b_hw:{html:`
+    <div class="panel">
+      <h2 style="color:var(--cert)">② ホームワーク会 主催</h2>
+      <p class="lead">L2 チェックリスト（7/9・7/14で整理）。</p>
+      <div class="want">求めること：<b>二子さんがいなくても</b>「安心安全」「その場にいられる」「学び多き場にできるか」「仲間と学びを深める意義を体験から伝えられるか」</div>
+
+      <div class="block">
+        <div class="bh2">レベル早見表</div>
+        <table class="lvtable">
+          <tr><th>L1</th><td>その場をサポートできる</td><td class="src">＝講座サポートのL2相当</td></tr>
+          <tr><th>L2</th><td>ファシリテーター：一人でその場を切り盛りできる</td><td class="src">まい・はる・ひろみ</td></tr>
+          <tr><th>L3</th><td>リーダー（企画）：企画・運営／サポートスタッフとの事前MTG／二子さんへの確認／終了後の報告</td><td class="src">ちえ</td></tr>
+        </table>
+      </div>
+
+      <div class="block">
+        <div class="bh2">① ファシリテーション的な力 <span style="font-size:11px;color:var(--sub);font-weight:400">（7/14：すべて⭐L2と決定）</span></div>
+        <ul class="checkl">
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>場の目的を伝えられる（「この時間は何のための時間か」を最初に明示）</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>発言を回す・進行できる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>場の安全感を保ちながら主導権を握れる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>受講生に否定・ダメ出しに聞こえない言い方で常に表現できる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>「はい次の方」と流さず、発言を受け取って応答する</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>気づきを内発する応答ができる（相槌でなく、応答が気づきを引き出す質）</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>参加者同士の交流を促進する関わりができる</li>
+        </ul>
+        <div class="cmeta" style="font-size:12.5px">経緯：講座サポートの要件として提案 → 二子さんが「講座当日は二子さんが同席するのでそこまで求めない。むしろ会を主催するホームワーク会でこそ必要」と位置づけ直し。</div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">② 相手と一緒にいる・みんなと一緒にいる（GFLスキル）</div>
+        <table class="lvtable">
+          <tr><th>L1</th><td>「一緒にいる」をしっかり理解している</td><td class="src"></td></tr>
+          <tr><th>L2</th><td>基本的に相手と一緒にいられ、受講生ができていない時に注意を促せる</td><td class="src">今スタッフはほぼ分かる</td></tr>
+          <tr><th>L3</th><td>防衛的な感情を向けられている時も一緒にいられる</td><td class="src">同上</td></tr>
+        </table>
+        <ul class="checkl"><li>相談者と「一緒にいる」ことを続けようとできている</li></ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">当日、二子さんと洗い出したいポイント ${T.wip}</div>
+        <ul class="checkl"><li>講座サポートの3要素（軌道修正／一緒にいる／チャイルディアンの扱い）は、ホームワーク会にもそのまま当てはまるか？ 別要素が必要か？</li></ul>
+      </div>
+      <div class="hint-open">💡 7/16：ホームワーク会は<b>模擬会をやってみる（ロープレ）</b>が有効。L2のファシリテーションからやってもらい、その中でL1にチェックが入る人／L2までいける人を見分ける。</div>
+    </div>`},
+
+  /* ---------- ③ 2on1 ---------- */
+  b_2on1:{html:`
+    <div class="panel">
+      <h2 style="color:var(--cert)">③ 2on1セッション（メイン）</h2>
+      <p class="lead">L2 チェックリスト。＝中級講座。古参スタッフさんは扱いを特別に検討。</p>
+      <div class="want">求めること：「安心安全」「クライアント（受講生）中心 ⇔ 自分よがりでない」「GFL的な見立てに基づいて介入できる」。<br>→ 受講生が自分の痛みと願いに繋がり、現実創造の力を取り戻す。何も否定せず、でもぬるま湯をよしとしないのがGFL。</div>
+
+      <div class="block">
+        <div class="bh2">レベル早見表</div>
+        <table class="lvtable">
+          <tr><th>L1</th><td>サブ担当 ※以下の⭐以外ができていること：①ラポール ②発見 ③受け止め ④痛みと願いに繋がる</td><td class="src">＝認定サポート生L1が担当（実習生は入らない）</td></tr>
+          <tr><th>L2</th><td>メイン担当</td><td class="src">ちえ</td></tr>
+          <tr><th>L3</th><td>メイン担当（上級）</td><td class="src">―</td></tr>
+        </table>
+        <div class="cmeta" style="font-size:12.5px"><b>⭐の読み方</b>：⭐＝L1（サブ）には必須でない。現状すべて<b>L2（メイン）</b>として扱う（L3への細分化は持ち越し）。</div>
+      </div>
+
+      <div class="block">
+        <div class="bh2">① ラポール（安全な場を作る）</div>
+        <ul class="checkl">
+          <li>自分のことを把握しながら、その場にいられる</li>
+          <li>相談者と一緒に、相談者のことを発見できるように関わっている</li>
+          <li>相談者を理解し、寄り添おうとしている</li>
+          <li>相談者と「一緒にいる」ことを続けようとできている</li>
+          <li>わからなさと出会い、抱えることができる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>対等性のある場を作れる</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">② 発見（チャイルディアンを見つける）</div>
+        <ul class="checkl">
+          <li>チャイルディアン、プリザーブドソウル、痛みと願いの基本理解がある</li>
+          <li>男女の違いとエネルギー循環の基本理解がある</li>
+          <li>真実を明かすことの重要性の基本理解がある</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>男女の違いとエネルギー循環について、問題点を見つけサポートできる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>真実を明かせていないことが核心のとき、それを見立てられる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>相談者のチャイルディアンが出ている場面を特定サポートできる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>チャイルディアンの作戦を見抜ける</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>チャイルディアン構文「相手がこうなら自分はこうするしかない」を見つけるサポート</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>初期チャイルディアン5つの基本作戦を見抜く力がある</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>5つの基本作戦を見つけた際、必要なら身体感覚を自覚するサポートができる</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">③ 受け止め（待つ・大人の意識で見守る）</div>
+        <ul class="checkl">
+          <li>解釈なしの事実を確認できる</li>
+          <li>話の登場人物に肩入れせずに聞ける</li>
+          <li>本人をさておいた一般論に入らないでいられる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>相談者が当然としている前提を聞き流さないでいられる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>わからないことをわからないと自覚し、取り上げられる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>チャイルディアンを見つけ、その嘆きを聞くのをサポートできる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>チャイルディアンと本人が同一化している時、安全に解除する導きができる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>チャイルディアンにかける言葉を見つけるサポートができる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>自分を使って、痛みを想像することができる</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div class="bh2">④ 痛みと願いに繋がる</div>
+        <ul class="checkl">
+          <li>癒され統合された状態への変化がどう生じるか、基本理解がある</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>チャイルディアンの奥のプリザーブドソウルを見つけるサポートができる</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>成熟した大人の意識でチャイルディアン・プリザーブドソウルに出会うサポート</li>
+          <li><span class="st">⭐</span><span class="lvmark">L2</span>相談者の成熟した大人の意識が、痛みと願いを見つけるサポートができる</li>
+        </ul>
+      </div>
+      <div class="hint-open">💡 7/16：2on1は<b>筆記が難しい</b>。→ 中級講座で二子さんが実習をたっぷり見てチェックを兼ねられる（「これやりたい人は中級へ」）。OJT（サブ×メインの組み合わせ）も。古参（ちえさん等）は特別扱いを検討。</div>
+    </div>`},
+
+  /* ---------- L3 試験マトリクス ---------- */
+  exam:{html:`
+    <div class="panel">
+      <h2>★ L3 ｜ 試験設計マトリクス（今日の議論の器）</h2>
+      <p class="lead">各基準を「どの方式で・誰が・どのラインで合格とするか」を、その場で埋めます。空欄（薄い文字）は今日の議論対象。</p>
+
+      <div class="decidebox">
+        <b>今日この場で決めたいこと（設計判断）</b>
+        <ol>
+          <li>「筆記・面談・ロープレ系」（着手しやすい）から着手 ─ まず<b>どの基準を筆記／ロープレに割り当てるか</b></li>
+          <li>「観察・OJT系」は<b>誰がチェックし</b>、「なぜ付いていないか」を<b>説明できる形</b>にどうするか</li>
+          <li>合否ライン（例：ロープレの総合点、講座サポートL1は緩め、100%基準 等）</li>
+          <li>"飛び球"の扱い（ロープレでL2・L3にチェックが入れば、いきなりその認定を出すか）</li>
+        </ol>
+      </div>
+
+      <div style="overflow-x:auto">
+      <table class="mtx">
+        <thead>
+          <tr><th>基準</th><th>測定方式（候補）</th><th>判定者</th><th>状態</th><th>今日決める／論点メモ</th></tr>
+        </thead>
+        <tbody>
+          <tr><th colspan="5" class="rowh">🧠 知識型 → 筆記テスト系</th></tr>
+          <tr>
+            <td>講座全体の流れと意図の理解／HWの説明ができる</td>
+            <td>筆記テスト（テキストベース、自分で取り組む）</td>
+            <td class="fill">要決定</td>
+            <td>${T.wip}</td>
+            <td class="memo">テスト範囲と形式が未確定。範囲を明示すれば客観判定が可能。全ラインで共通。</td>
+          </tr>
+          <tr>
+            <td>チャイルディアンワークについて理解している（認定サポート生の入口②）</td>
+            <td>筆記 or レポート</td>
+            <td class="fill">要決定</td>
+            <td>${T.wip}</td>
+            <td class="memo">"飛び球"の人（問題化するものが無いまま上がる人）に、これを試験で確認する必要。</td>
+          </tr>
+
+          <tr><th colspan="5" class="rowh">🛠 技術型 → ロープレ／チェックリスト系</th></tr>
+          <tr>
+            <td>① 講座サポート L1〜L3</td>
+            <td>ロープレ（チェックリスト照合）</td>
+            <td class="fill">要決定（複数人？）</td>
+            <td>${T.wip}</td>
+            <td class="memo">L1は緩め。他コミュニティ例＝複数人で採点し平均◯点以上で合格。二子さんが雇い主である点を踏まえる。</td>
+          </tr>
+          <tr>
+            <td>② ホームワーク会 L1〜L3</td>
+            <td>模擬会（ロープレ）</td>
+            <td class="fill">要決定</td>
+            <td>${T.wip}</td>
+            <td class="memo">L2のファシリからやってもらい、L1どまり／L2到達を見分ける。飛び球判定しやすい。</td>
+          </tr>
+          <tr>
+            <td>③ 2on1セッション L1〜L3</td>
+            <td>中級講座での観察 ＋ OJT（サブ×メイン）</td>
+            <td>二子さん（中級で兼ねる）</td>
+            <td>${T.wip}</td>
+            <td class="memo">筆記が難しい。中級で実習を見てチェックを兼ねる。古参は特別扱いを検討。</td>
+          </tr>
+
+          <tr><th colspan="5" class="rowh">🔥 姿勢型 → 観察／面談／レポート系</th></tr>
+          <tr>
+            <td>共-2 語れること</td>
+            <td>グループ面談 ＋ レポート</td>
+            <td>二子さん（将来は千恵さん等も）</td>
+            <td>${T.ok}</td>
+            <td class="memo">形式は確定。要素を抽出できれば他者判定へ移譲可。</td>
+          </tr>
+          <tr>
+            <td>共-3 パッション</td>
+            <td>観察（会話・MTG反応・外部紹介）／クレド提示</td>
+            <td>二子さん</td>
+            <td>${T.ok}</td>
+            <td class="memo">「伝わってくるか」が基準。手順化せず例示・クレドで示す。</td>
+          </tr>
+          <tr>
+            <td>共-1 取り組み続けている</td>
+            <td>記録確認（オンサロ・SNS・HW・次講座受講）</td>
+            <td>事務方</td>
+            <td>${T.ok}</td>
+            <td class="memo">次講座受講は十分条件。コミュニティ内の関わりの"見える化"のみ未確定。</td>
+          </tr>
+          <tr>
+            <td>候-1 チャイルディアンの自覚と相談</td>
+            <td>行動観察 ＋ 自己申告</td>
+            <td>認定サポート生（上の層）</td>
+            <td>${T.wip}</td>
+            <td class="memo">「相談できている」判定を要設計。案＝自己申告（5段階＋理由）／穴埋め。スタッフにヒアリング。</td>
+          </tr>
+          <tr>
+            <td>認-1 問題チャイルディアンをクリア</td>
+            <td>実習期間中の行動観察の蓄積</td>
+            <td>千恵ちゃん等 ＋ 二子さん</td>
+            <td>${T.wip}</td>
+            <td class="memo">単発テストでない。「クリア」のラインが未確定。</td>
+          </tr>
+          <tr>
+            <td>認-2 プロ意識</td>
+            <td>実習中の行動観察（＋育成）</td>
+            <td>二子さん・管理職（千恵ちゃん）</td>
+            <td>${T.wip}</td>
+            <td class="memo">概念は合意。具体チェック項目・レベル分けが未確定。短い動画で繰り返し育成。</td>
+          </tr>
+
+          <tr><th colspan="5" class="rowh">📋 事務・要件（記録確認）</th></tr>
+          <tr>
+            <td>候-3 HW・動画の完了（100%）</td>
+            <td>Discord投稿記録の集計</td>
+            <td>事務方</td>
+            <td>${T.ok}</td>
+            <td class="memo">後からの提出も可。</td>
+          </tr>
+          <tr>
+            <td>認-4 中級講座修了 等（2on1メインは必須）</td>
+            <td>受講記録 or 資格・実績の確認</td>
+            <td>事務方</td>
+            <td>${T.ok}</td>
+            <td class="memo"></td>
+          </tr>
+          <tr>
+            <td>認-5 実習活動 期間／回数</td>
+            <td>活動記録</td>
+            <td>事務方</td>
+            <td>${T.wip}</td>
+            <td class="memo">何クール以上か未確定。バッジごとにシンプルに。</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>`}
+};
+
+function show(key){
+  const el = document.getElementById('detail');
+  el.innerHTML = (DATA[key]||DATA.intro).html;
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+show('intro');
+</script>
+</body>
+</html>
